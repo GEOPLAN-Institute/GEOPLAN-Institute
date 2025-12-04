@@ -1,221 +1,277 @@
 <!DOCTYPE html>
 <html lang="sq">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Instituti GEOPLAN — Hyrje</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <meta name="description" content="Instituti GEOPLAN — Kërkim, hartografi, dhe zgjidhje GIS për planifikim rajonal." />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Instituti GEOPLAN — Hyrje</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<meta name="description" content="Instituti GEOPLAN — Kërkim, hartografi, dhe zgjidhje GIS për planifikim rajonal." />
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
-  <style>
-    .brand-gradient { background: linear-gradient(90deg,#0ea5a4,#0ea5b7); }
-    .card-shadow { box-shadow: 0 6px 18px rgba(14,165,164,0.08); }
-
-    /* Map styling */
-    #map { width: 100%; height: 500px; border-radius: 1rem; }
-
-    /* Sticky header fix */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 9999; /* Ensure header stays above Leaflet */
-      background-color: white;
-    }
-  </style>
+<style>
+  .brand-gradient { background: linear-gradient(90deg,#0ea5a4,#0ea5b7); }
+  .card-shadow { box-shadow: 0 6px 18px rgba(14,165,164,0.08); }
+  #contactMap { width: 100%; height: 500px; border-radius: 1rem; }
+  header { position: sticky; top: 0; z-index: 9999; background-color: white; }
+  .modal-bg { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    z-index: 10000; 
+    justify-content: center; 
+    align-items: center; 
+  }
+  .modal-content { 
+    width: 95%; max-width: 1000px; 
+    background: white; 
+    padding: 1rem; 
+    border-radius: 0.5rem; 
+    position: relative; 
+  }
+  .close-btn { position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; font-weight: bold; }
+</style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 
-  <!-- Header -->
-  <header class="shadow-sm">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="#" class="flex items-center space-x-3">
-        <img src="GEOPLAN Institute LOGO - Transparent.png" alt="Instituti GEOPLAN Logo" class="w-12 h-12 rounded-full object-contain" />
-        <div>
-          <div class="font-semibold">Instituti GEOPLAN</div>
-          <div class="text-xs text-gray-500"> GIS | Remote Sensing | Planifikim</div>
-        </div>
-      </a>
-      <nav class="hidden md:flex items-center space-x-6 text-sm">
-        <a href="#about" class="hover:text-teal-600">Rreth Nesh</a>
-        <a href="#services" class="hover:text-teal-600">Aktivitetet</a>
-        <a href="#projects" class="hover:text-teal-600">Projektet</a>
-        <a href="#team" class="hover:text-teal-600">Ekipi</a>
-        <a href="#contact" class="hover:text-teal-600">Kontakti</a>
-      </nav>
-      <div class="md:hidden">
-        <button aria-label="open menu" id="menuBtn" class="px-3 py-2 rounded-lg bg-gray-100">Menu</button>
+<!-- Header -->
+<header class="shadow-sm">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="#" class="flex items-center space-x-3">
+      <img src="GEOPLAN Institute LOGO - Transparent.png" alt="Instituti GEOPLAN Logo" class="w-12 h-12 rounded-full object-contain" />
+      <div>
+        <div class="font-semibold">Instituti GEOPLAN</div>
+        <div class="text-xs text-gray-500"> GIS | Remote Sensing | Planifikim</div>
+      </div>
+    </a>
+    <nav class="hidden md:flex items-center space-x-6 text-sm" id="navLinks">
+      <a href="#about" class="hover:text-teal-600">Rreth Nesh</a>
+      <a href="#team" class="hover:text-teal-600">Ekipi</a>
+      <a href="#projects" class="hover:text-teal-600">Projektet</a>
+      <a href="#" id="openWebMap" class="hover:text-teal-600">WebMap</a>
+      <a href="#contact" class="hover:text-teal-600">Kontakti</a>
+    </nav>
+    <div class="md:hidden">
+      <button aria-label="open menu" id="menuBtn" class="px-3 py-2 rounded-lg bg-gray-100">Menu</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="max-w-6xl mx-auto px-6 py-16 flex flex-col md:flex-row gap-8 items-center pt-20 md:pt-28">
+  <div>
+    <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">
+      Instituti GEOPLAN — Hulumtim, GIS dhe Zhvillim Rajonal
+    </h1>
+    <p class="mt-6 text-lg text-gray-600">
+      Ne ofrojmë shërbime të avancuara të hartografisë, analizës së të dhënave hapësinore dhe konsulencë për planifikim urban dhe rajonal.
+    </p>
+    <div class="mt-8 flex space-x-4">
+      <a href="#projects" class="px-5 py-3 border border-gray-200 rounded-lg">Shiko projektet</a>
+      <a href="#" id="openWebMapHero" class="px-5 py-3 border border-gray-200 rounded-lg">Shiko WebMap</a>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="bg-white py-12">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-semibold">Rreth nesh</h2>
+    <p class="mt-4 text-gray-600">
+      Instituti GEOPLAN u themelua për të sjellë qasje multidisiplinare në studimin e hapësirës.
+    </p>
+    <div class="mt-6 grid md:grid-cols-3 gap-4">
+      <div class="p-4 bg-gray-50 rounded-lg card-shadow">
+        <h3 class="font-semibold">Misioni</h3>
+        <p class="text-sm text-gray-600 mt-2">Zgjidhje hapësinore të qëndrueshme.</p>
+      </div>
+      <div class="p-4 bg-gray-50 rounded-lg card-shadow">
+        <h3 class="font-semibold">Vizioni</h3>
+        <p class="text-sm text-gray-600 mt-2">Referencë për GIS dhe hulumtim rajonal.</p>
+      </div>
+      <div class="p-4 bg-gray-50 rounded-lg card-shadow">
+        <h3 class="font-semibold">Vlerat</h3>
+        <p class="text-sm text-gray-600 mt-2">Saktësi, bashkëpunim, qasje e bazuar në të dhëna.</p>
       </div>
     </div>
-  </header>
+  </div>
+</section>
 
-  <!-- Hero Section with Map -->
-  <section class="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-8 items-center pt-20 md:pt-28">
-    <div>
-      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">
-        Instituti GEOPLAN — Hulumtim, GIS dhe Zhvillim Rajonal
-      </h1>
-      <p class="mt-6 text-lg text-gray-600">
-        Ne ofrojmë shërbime të avancuara të hartografisë, analizës së të dhënave hapësinore dhe konsulencë për planifikim urban dhe rajonal. Bashkëpunojmë me universitetet, komunat dhe organizatat private.
-      </p>
-      <div class="mt-8 flex space-x-4">
-        <a href="#services" class="px-5 py-3 border border-gray-200 rounded-lg">Shiko aktivitetet</a>
-        <a href="#projects" class="px-5 py-3 border border-gray-200 rounded-lg">Shiko projektet</a>
+<!-- Services Section -->
+<section id="services" class="py-12">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-semibold">Shërbimet</h2>
+    <div class="mt-6 grid md:grid-cols-3 gap-6">
+      <div class="p-6 bg-white rounded-xl card-shadow">
+        <h3 class="font-semibold">Analiza GIS</h3>
+        <p class="mt-2 text-sm text-gray-600">Analiza hapësinore për planifikim urban dhe menaxhim resursesh.</p>
+      </div>
+      <div class="p-6 bg-white rounded-xl card-shadow">
+        <h3 class="font-semibold">Fotogrametri & Dronë</h3>
+        <p class="mt-2 text-sm text-gray-600">Produksion i të dhënave nga dronët për modele 3D dhe ortofoto.</p>
+      </div>
+      <div class="p-6 bg-white rounded-xl card-shadow">
+        <h3 class="font-semibold">Hartografi & Vizualizim</h3>
+        <p class="mt-2 text-sm text-gray-600">Krijim hartash të printueshme dhe hartash interaktive WebGIS.</p>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="order-first md:order-last">
-      <!-- Map container -->
-      <div id="map"></div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" class="bg-white py-12">
-    <div class="max-w-5xl mx-auto px-6">
-      <h2 class="text-2xl font-semibold">Rreth nesh</h2>
-      <p class="mt-4 text-gray-600">
-        Instituti GEOPLAN u themelua për të sjellë qasje multidisiplinare në studimin e hapësirës. Misioni ynë është të mbështesim vendimmarrjen me të dhëna të sakta, harta të personalizuara dhe analiza të thelluara.
-      </p>
-      <div class="mt-6 grid md:grid-cols-3 gap-4">
-        <div class="p-4 bg-gray-50 rounded-lg card-shadow">
-          <h3 class="font-semibold">Misioni</h3>
-          <p class="text-sm text-gray-600 mt-2">Të ofrojmë zgjidhje hapësinore të qëndrueshme për planifikim dhe zhvillim.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-lg card-shadow">
-          <h3 class="font-semibold">Vizioni</h3>
-          <p class="text-sm text-gray-600 mt-2">Të bëhemi referencë në Ballkan për GIS dhe hulumtim rajonal.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-lg card-shadow">
-          <h3 class="font-semibold">Vlerat</h3>
-          <p class="text-sm text-gray-600 mt-2">Saktësi, bashkëpunim dhe qasje e bazuar në të dhëna.</p>
-        </div>
+<!-- Projects Section -->
+<section id="projects" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-semibold">Projektet tona</h2>
+    <div class="mt-6 grid md:grid-cols-3 gap-6">
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-semibold">Analizë e dendësisë së popullatës</h4>
+        <p class="text-sm text-gray-600 mt-2">Studim për shpërndarjen demografike.</p>
+      </div>
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-semibold">Modelimi i rrezikut nga përmbytjet</h4>
+        <p class="text-sm text-gray-600 mt-2">Vlerësim i rrezikut bazuar në të dhëna hidrologjike.</p>
+      </div>
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-semibold">Portal WebGIS për komunën</h4>
+        <p class="text-sm text-gray-600 mt-2">Hartë interaktive për qytetarët dhe planifikuesit.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Services Section -->
-  <section id="services" class="py-12">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-2xl font-semibold">Shërbimet</h2>
-      <div class="mt-6 grid md:grid-cols-3 gap-6">
-        <div class="p-6 bg-white rounded-xl card-shadow">
-          <h3 class="font-semibold">Analiza GIS</h3>
-          <p class="mt-2 text-sm text-gray-600">Analiza hapësinore për planifikim urban, menaxhim resursesh, dhe vlerësim ndikimi.</p>
-        </div>
-        <div class="p-6 bg-white rounded-xl card-shadow">
-          <h3 class="font-semibold">Fotogrametri & Dronë</h3>
-          <p class="mt-2 text-sm text-gray-600">Produksion i të dhënave nga dronët për modele 3D dhe ortofoto.</p>
-        </div>
-        <div class="p-6 bg-white rounded-xl card-shadow">
-          <h3 class="font-semibold">Hartografi & Vizualizim</h3>
-          <p class="mt-2 text-sm text-gray-600">Krijim hartash të printueshme dhe hartash interaktive WebGIS.</p>
-        </div>
+<!-- Team Section -->
+<section id="team" class="py-12">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-semibold">Ekipi</h2>
+    <div class="mt-6 grid md:grid-cols-3 gap-6">
+      <div class="p-4 bg-white rounded-lg text-center">
+        <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
+        <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
+        <p class="text-sm text-gray-500">Kryetar</p>
+      </div>
+      <div class="p-4 bg-white rounded-lg text-center">
+        <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
+        <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
+        <p class="text-sm text-gray-500">Drejtor Ekzekutiv</p>
+      </div>
+      <div class="p-4 bg-white rounded-lg text-center">
+        <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
+        <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
+        <p class="text-sm text-gray-500">Anëtar</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Projects Section -->
-  <section id="projects" class="bg-white py-12">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-2xl font-semibold">Projektet tona</h2>
-      <p class="mt-3 text-gray-600">Disa nga projektet kryesore ku kemi punuar:</p>
-      <div class="mt-6 grid md:grid-cols-3 gap-6">
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <h4 class="font-semibold">Analizë e dendësisë së popullatës</h4>
-          <p class="text-sm text-gray-600 mt-2">Studim për shpërndarjen demografike në një rajon të caktuar.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <h4 class="font-semibold">Modelimi i rrezikut nga përmbytjet</h4>
-          <p class="text-sm text-gray-600 mt-2">Përdorim i të dhënave hidrologjike dhe modeleve topo për vlerësim rreziku.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <h4 class="font-semibold">Portal WebGIS për komunën</h4>
-          <p class="text-sm text-gray-600 mt-2">Zbatim i një portali ku qytetarët dhe planifikuesit mund të shohin hartat interaktive.</p>
-        </div>
-      </div>
+<!-- Contact Section -->
+<section id="contact" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-semibold">Na kontaktoni</h2>
+    <form class="mt-6 space-y-4" action="mailto:geoplan.institute@outlook.com" method="post" enctype="text/plain">
+      <input class="w-full px-4 py-3 border rounded-lg" type="text" name="Emri" placeholder="Emri" required />
+      <input class="w-full px-4 py-3 border rounded-lg" type="email" name="Email" placeholder="Email" required />
+      <textarea class="w-full px-4 py-3 border rounded-lg" name="Mesazhi" rows="4" placeholder="Mesazhi juaj" required></textarea>
+      <button class="px-5 py-3 bg-teal-600 text-white rounded-lg">Dërgo mesazh</button>
+    </form>
+    <div class="mt-8">
+      <div id="contactMap" class="w-full h-96 md:h-96 rounded-lg border"></div>
+      <button id="resetMapBtn" class="mt-2 px-4 py-2 bg-gray-200 rounded">Reset View</button>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Team Section -->
-  <section id="team" class="py-12">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-2xl font-semibold">Ekipi</h2>
-      <p class="mt-3 text-gray-600">Një ekip multidisiplinar me ekspertizë në gjeografi, GIS dhe inxhinieri të të dhënave.</p>
-      <div class="mt-6 grid md:grid-cols-3 gap-6">
-        <div class="p-4 bg-white rounded-lg text-center">
-          <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
-          <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
-          <p class="text-sm text-gray-500">Kryetar</p>
-        </div>
-        <div class="p-4 bg-white rounded-lg text-center">
-          <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
-          <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
-          <p class="text-sm text-gray-500">Drejtor Ekzekutiv</p>
-        </div>
-        <div class="p-4 bg-white rounded-lg text-center">
-          <div class="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">[Foto]</div>
-          <h4 class="mt-4 font-semibold">Emri Mbiemri</h4>
-          <p class="text-sm text-gray-500">Anëtar</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- WebMap Modal -->
+<div id="webMapModal" class="modal-bg flex">
+  <div class="modal-content">
+    <span class="close-btn" id="closeModal">&times;</span>
+    <iframe id="webmap" src="" width="100%" height="500px" style="border:none;" title="WebMap"></iframe>
+  </div>
+</div>
 
-  <!-- Contact Section -->
-  <section id="contact" class="bg-white py-12">
-    <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-2xl font-semibold">Na kontaktoni</h2>
-      <p class="mt-2 text-gray-600">Për kërkesa bashkëpunimi, citime ose pyetje:</p>
-      <div class="mt-6 grid md:grid-cols-2 gap-6">
-        <form class="space-y-4" onsubmit="return false;">
-          <input class="w-full px-4 py-3 border rounded-lg" placeholder="Emri" />
-          <input class="w-full px-4 py-3 border rounded-lg" placeholder="Email" />
-          <textarea class="w-full px-4 py-3 border rounded-lg" rows="4" placeholder="Mesazhi juaj"></textarea>
-          <button class="px-5 py-3 bg-teal-600 text-white rounded-lg">Dërgo mesazh</button>
-        </form>
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <p class="text-sm font-bold">Adresa: </p>
-          <p class="text-sm text-gray-600 mt-2">Email: geoplan.institute@outlook.com</p>
-          <p class="text-sm text-gray-600 mt-2">Tel: </p>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-200 py-8">
+  <div class="max-w-6xl mx-auto px-6 text-sm flex flex-col md:flex-row justify-between">
+    <div>© "Instituti GEOPLAN" — Të gjitha të drejtat e rezervuara.</div>
+    <div class="mt-3 md:mt-0">Projektuar me ❤ — Kontakto: geoplan.institute@outlook.com</div>
+  </div>
+</footer>
 
-  <!-- Footer -->
-  <footer class="bg-gray-900 text-gray-200 py-8">
-    <div class="max-w-6xl mx-auto px-6 text-sm flex flex-col md:flex-row justify-between">
-      <div>© "Instituti GEOPLAN" — Të gjitha të drejtat e rezervuara.</div>
-      <div class="mt-3 md:mt-0">Projektuar me ❤ — Kontakto: geoplan.institute@outlook.com</div>
-    </div>
-  </footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script>
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn && menuBtn.addEventListener('click', () => { navLinks.classList.toggle('hidden'); });
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    // Mobile menu toggle
-    const menuBtn = document.getElementById('menuBtn');
-    const nav = document.querySelector('nav');
-    menuBtn && menuBtn.addEventListener('click', () => {
-      nav.classList.toggle('hidden');
+  document.addEventListener('DOMContentLoaded', () => {
+    const initialBounds = [[41.85, 19.9],[43.3, 21.9]];
+    const contactMap = L.map('contactMap', { zoomControl:true }).fitBounds(initialBounds);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(contactMap);
+
+    // Search with autocomplete
+    const geocoder = L.Control.geocoder({
+      defaultMarkGeocode: false,
+      geocoder: L.Control.Geocoder.nominatim(),
+      placeholder: "Kërko vendndodhje...",
+      showResultIcons: true
+    }).addTo(contactMap);
+
+    let searchMarker;
+    geocoder.on('markgeocode', function(e) {
+      if(searchMarker) contactMap.removeLayer(searchMarker);
+      const center = e.geocode.center;
+      searchMarker = L.marker(center, {draggable:true}).addTo(contactMap).bindPopup(e.geocode.name).openPopup();
+      contactMap.setView(center, 13);
     });
 
-    // Initialize Leaflet map after DOM loads
-    document.addEventListener('DOMContentLoaded', () => {
-      const map = L.map('map').setView([42.4539551, 21.4625628], 13);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      L.marker([42.4539551, 21.4625628])
-        .noaddTo(map)
-        .bindPopup('<strong>Instituti GEOPLAN</strong><br>Hulumtim dhe GIS')
-        .openPopup();
+    document.getElementById('resetMapBtn').addEventListener('click', () => {
+      contactMap.fitBounds(initialBounds);
+      if(searchMarker) contactMap.removeLayer(searchMarker);
     });
-  </script>
+
+    // My Location button
+    const myLocationBtn = L.control({position: 'topleft'});
+    myLocationBtn.onAdd = function(map) {
+      const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+      div.innerHTML = '📍';
+      div.style.background = 'white';
+      div.style.width = '34px';
+      div.style.height = '34px';
+      div.style.cursor = 'pointer';
+      div.style.textAlign = 'center';
+      div.style.lineHeight = '34px';
+      div.title = "Gjej pozicionin tim";
+      div.onclick = function() {
+        contactMap.locate({setView:true, maxZoom:16}).on('locationfound', function(e){
+          L.marker(e.latlng, {icon: L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', iconSize:[25,41], iconAnchor:[12,41]})}).addTo(contactMap)
+          .bindPopup('Pozicioni juaj').openPopup();
+        });
+      };
+      return div;
+    };
+    myLocationBtn.addTo(contactMap);
+
+    // WebMap modal
+    const modal = document.getElementById('webMapModal');
+    const openBtns = [document.getElementById('openWebMap'), document.getElementById('openWebMapHero')];
+    const closeBtn = document.getElementById('closeModal');
+    openBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'flex';
+        const iframe = document.getElementById('webmap');
+        iframe.src = "https://qgiscloud.com/edon_sh/Kosova_-_GEOPLAN/?l=Border%20of%20Kosova%2CMunicipal%20Borders%20of%20Kosova%2CCadastral%20Zones%20of%20Kosova%2COpenStreetMap%2COSM%20OpenTopoMap%2CSatellite%2CEsri%20Shaded%20Relief&t=Kosova_-_GEOPLAN&e=1861036%2C5066975%2C2673836%2C5434746";
+      });
+    });
+    closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    window.addEventListener('click', (e) => { if(e.target === modal) modal.style.display = 'none'; });
+  });
+</script>
 </body>
 </html>
